@@ -1,0 +1,23 @@
+{
+    "name": "jbizzay/skrape",
+    "description": "PHP web scraper, link previewer, spider",
+    "authors": [
+        {
+            "name": "Jason Kuchynka",
+            "email": "jason.kuchynka@gmail.com"
+        }
+    ],
+    "require": {
+        "guzzlehttp/guzzle": "^6.2",
+        "league/booboo": "^1.0",
+        "symfony/filesystem": "^3.0",
+        "symfony/dom-crawler": "^3.0",
+        "symfony/css-selector": "^3.0",
+        "webignition/internet-media-type": "^0.4.7"
+    },
+    "autoload": {
+        "psr-4": {
+            "Jbizzay\\Skrape\\": "src/"
+        }
+    }
+}
