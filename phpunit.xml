@@ -11,7 +11,7 @@
          bootstrap="tests/bootstrap.php"
 >
     <testsuites>
-        <testsuite name="LinkPreview library Test Suite">
+        <testsuite name="Skrape Test Suite">
             <directory suffix=".php">tests/</directory>
         </testsuite>
     </testsuites>

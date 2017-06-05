@@ -1,9 +1,9 @@
 <?php
 
-namespace Jbizzay\Skrape\Parser;
+namespace Skrape\Parser;
 
-use Jbizzay\Skrape\Parser;
-use Jbizzay\Skrape\Uri;
+use Skrape\Parser;
+use Skrape\Uri;
 
 class Html extends Parser
 {
@@ -94,7 +94,7 @@ class Html extends Parser
         }
         return $keywords;
     }
-    
+
     public function getLinks()
     {
         $extract = [
@@ -156,5 +156,5 @@ class Html extends Parser
             return $title->text();
         }
     }
-    
+
 }

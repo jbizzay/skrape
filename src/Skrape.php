@@ -1,11 +1,18 @@
 <?php
 
-namespace Jbizzay\Skrape;
+namespace Skrape;
 
-use Jbizzay\Skrape\Parser\Html;
-use Jbizzay\Skrape\Response;
+use Skrape\Parser\Html;
+use Skrape\Parser\Feed;
+use Skrape\Parser\Image;
+use Skrape\Parser\Json;
+use Skrape\Response;
+use Skrape\Exception\UriInvalidException;
 use GuzzleHttp\Client;
 use Symfony\Component\Filesystem\Filesystem;
+
+use VDB\Uri\Uri;
+use VDB\Uri\UriInterface;
 
 class Skrape {
 
@@ -102,25 +109,57 @@ class Skrape {
 
     protected $response;
 
-    public $uri;
+    /**
+     * @var UriInterface
+     */
+    protected $uri;
 
-    public function __construct($uri)
+    /**
+     * @param UriInterface|string $uri
+     * @param string|boolean $autoScheme
+     */
+    public function __construct($uri, $autoScheme = 'http')
     {
-        if (is_string($uri)) {
-            $parts = parse_url($uri);
-            if (empty($parts['scheme'])) {
-                $uri = 'http://' . $uri;
+        try {
+            if ($uri instanceof UriInterface) {
+                $this->uri = $uri;
             }
-            $this->uri = new Uri($uri);
-        } else {
-            $this->uri = $uri;
-        }
-        if ( ! $this->uri) {
-            throw new \Exception("Unable to set uri");
+            else if (is_string($uri)) {
+                $uriString = $uri;
+                $parts = parse_url($uri);
+                if (empty($parts['scheme'])) {
+                    if ( ! $autoScheme) {
+                        throw new UriInvalidException('URI missing scheme');
+                    }
+                    $uriString = $autoScheme . '://' . $uri;
+                }
+                $this->uri = new Uri($uriString);
+            }
+        } catch (\Exception $e) {
+            throw new Exception\UriInvalidException('Invalid URI: ' . (string) $uri . ' Message: ' . $e->getMessage());
         }
         $this->config = self::$default_config;
         $this->options = self::$default_options;
         self::$filesystem = new Filesystem;
+    }
+
+    /**
+     * @return Config
+     */
+    public function getConfig()
+    {
+        if ( ! $this->config) {
+            $this->config = new Config;
+        }
+        return $this->config;
+    }
+
+    /**
+     * @return UriInterace $uri
+     */
+    public function getUri()
+    {
+        return $this->uri;
     }
 
     /**
@@ -159,7 +198,7 @@ class Skrape {
         if ($this->response) {
             $this->media_type = $this->response->getMediaType();
             $this->mapped_type = $this->class_map[$this->media_type];
-            $class = 'Jbizzay\\Skrape\\Parser\\' . $this->mapped_type;
+            $class = 'Skrape\\Parser\\' . $this->mapped_type;
             $this->parser = new $class($this);
             return true;
         }
@@ -194,10 +233,6 @@ class Skrape {
         return str_replace('/', '-', (string) $this->uri);
     }
 
-    public function getConfig()
-    {
-        return $this->config;
-    }
 
     public static function getDefaultConfig()
     {

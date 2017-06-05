@@ -1,6 +1,6 @@
 <?php
 
-namespace Jbizzay\Skrape;
+namespace Skrape;
 
 use Symfony\Component\DomCrawler\Crawler;
 

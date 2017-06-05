@@ -1,6 +1,6 @@
 <?php
 
-namespace Jbizzay\Skrape;
+namespace Skrape;
 
 use GuzzleHttp\Psr7\Response as GuzzleResponse;
 use webignition\InternetMediaType\Parser\SubtypeParser;

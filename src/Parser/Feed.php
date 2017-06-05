@@ -1,8 +1,8 @@
 <?php
 
-namespace Jbizzay\Skrape\Parser;
+namespace Skrape\Parser;
 
-use Jbizzay\Skrape\Parser;
+use Skrape\Parser;
 
 class Feed extends Parser {
 
