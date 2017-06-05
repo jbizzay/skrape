@@ -2,6 +2,8 @@
 
 namespace Skrape;
 
+use Skrape\Config;
+
 class Response {
 
     /** @var string **/
@@ -21,6 +23,9 @@ class Response {
 
     /** @var int Status code of the response **/
     protected $statusCode;
+
+    /** @var Config Any custom data to be stored in the cache **/
+    protected $meta;
 
     /**
      * @param int $status Status code fro the response
@@ -105,6 +110,18 @@ class Response {
             $key = strtoupper($key);
             $this->headersNormalized[$key] = $header[0];
         }
+    }
+
+    /**
+     * Get Meta config, will be cached with this response
+     * @return Config
+     */
+    public function getMeta()
+    {
+        if ( ! $this->meta) {
+            $this->meta = new Config;
+        }
+        return $this->meta;
     }
 
 }

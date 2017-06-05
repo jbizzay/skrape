@@ -55,4 +55,9 @@ class ResponseTest extends TestCase
         $this->assertSame('OK', $this->response->getReason());
     }
 
+    public function testGetMeta()
+    {
+        $this->assertInstanceOf('Skrape\\Config', $this->response->getMeta());
+    }
+
 }

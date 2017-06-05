@@ -4,6 +4,7 @@ namespace Skrape\Tests;
 use Skrape\Skrape;
 use Skrape\Cache;
 use Skrape\Config;
+use Skrape\Response;
 use VDB\Uri\Uri;
 
 class CacheTest extends TestCase
@@ -53,5 +54,19 @@ class CacheTest extends TestCase
         $cache->store($data);
         $this->assertFileExists($filepath);
         $this->assertEquals('bar', $cache->fetch()['foo']);
+    }
+
+    public function testResponseCache()
+    {
+        $cache = new Cache(new Config, new Uri('http://example.org'));
+        $response = new Response(200, ['foo' => ['bar']], '', '1.1', 'OK');
+        $cache->store($response);
+        $response = $cache->fetch();
+        $this->assertEquals('bar', $response->getHeaders()['FOO']);
+        // Put something in response meta, cache it and return it
+        $response->getMeta()->set('foo.bar', 'qux');
+        $cache->store($response);
+        $response = $cache->fetch();
+        $this->assertEquals('qux', $response->getMeta()->get('foo.bar'));
     }
 }
