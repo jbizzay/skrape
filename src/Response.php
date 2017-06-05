@@ -2,103 +2,109 @@
 
 namespace Skrape;
 
-use GuzzleHttp\Psr7\Response as GuzzleResponse;
-use webignition\InternetMediaType\Parser\SubtypeParser;
-use webignition\InternetMediaType\Parser\Parser as TypeParser;
-
 class Response {
 
-    protected $body;
-    protected $headers;
-    protected $statusCode;
+    /** @var string **/
+    protected $protocol;
+
+    /** @var array Raw headers set on the response **/
+    protected $headers = [];
+
+    /** @var array Normalized headers **/
+    protected $headersNormalized = [];
+
+    /** @var string Body of the response **/
+    protected $body = '';
+
+    /** @var string **/
     protected $reasonPhrase;
 
-    public function __construct()
-    {
+    /** @var int Status code of the response **/
+    protected $statusCode;
 
-    }
-
-    public function getContentType()
+    /**
+     * @param int $status Status code fro the response
+     * @param array $headers Headers for the response
+     * @param mixed $body Body of the response
+     * @param string $version Protocal version
+     * @param string $reason Reason phrase
+     */
+    public function __construct($status, $headers, $body, $version, $reason)
     {
-        $content_type = $this->getHeader('CONTENT-TYPE');
-        return $content_type;
-    }
-
-    public function setHeaders($headers)
-    {
+        $this->statusCode = (int) $status;
         $this->headers = $headers;
+        $this->normalizeHeaders();
+        $this->body = $body;
+        $this->protocol = $version;
+        $this->reasonPhrase = $reason;
     }
 
-    public function setResponse(GuzzleResponse $response)
-    {
-        $this->statusCode = $response->getStatusCode();
-        $this->reasonPhrase = $response->getReasonPhrase();
-        $this->body = (string) $response->getBody();
-        $this->headers = $response->getHeaders();
-    }
-
-    public function setStatusCode($statusCode)
-    {
-        $this->statusCode = $statusCode;
-    }
-
-    public function getHeader($name)
-    {
-        $headers = $this->getHeaders();
-        if (isset($headers[$name])) {
-            return $headers[$name];
-        }
-        return null;
-    }
-
-    public function getHeaders()
-    {
-        $ret = [];
-        $headers = $this->headers;
-        if ($headers) {
-            foreach ($headers as $name => $header) {
-                $ret[strtoupper($name)] = isset($header[0]) ? $header[0] : '';
-            }
-        }
-        return $ret;
-    }
-
+    /**
+     * @return int $statusCode
+     */
     public function getStatusCode()
     {
         return $this->statusCode;
     }
 
-    public function getReasonPhrase()
+    /**
+     * Get headers from the response
+     * @param boolean $normalized
+     * @return array $headers
+     */
+    public function getHeaders($normalized = true)
+    {
+        if ($normalized) {
+            return $this->headersNormalized;
+        }
+        return $this->headers;
+    }
+
+    /**
+     * Get a header value
+     * @param string $key
+     * @return string $value
+     */
+    public function getHeader($key)
+    {
+        $key = strtoupper($key);
+        return isset($this->headersNormalized[$key]) ? $this->headersNormalized[$key] : null;
+    }
+
+    /**
+     * @return string $body
+     */
+    public function getBody()
+    {
+        return (string) $this->body;
+    }
+
+    /**
+     * @return string $protocol
+     */
+    public function getVersion()
+    {
+        return (string) $this->protocol;
+    }
+
+    /**
+     * @return string $reasonPhrase
+     */
+    public function getReason()
     {
         return $this->reasonPhrase;
     }
 
-    public function getBody()
+    /**
+     * Convert headers into easier to access array
+     * @return void
+     */
+    protected function normalizeHeaders()
     {
-        return $this->body;
-    }
-
-    public function getMediaType()
-    {
-        $type_parser = new TypeParser;
-        $content_type = $this->getHeader('CONTENT-TYPE');
-        $type = $type_parser->parse($content_type);
-        $media_type = $type->getType();
-        switch ($media_type) {
-            case 'text':
-            case 'xml':
-            case 'application':
-                $sub_type_parser = new SubtypeParser;
-                return $sub_type_parser->parse($content_type);
-            break;
+        foreach ($this->headers as $key => $header) {
+            $key = strtoupper($key);
+            $this->headersNormalized[$key] = $header[0];
         }
-        return $media_type;
-    }
-
-    public function hasHeader($name)
-    {
-        $val = $this->headers[$name];
-        return $val ? true : false;
     }
 
 }
