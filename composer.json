@@ -1,6 +1,6 @@
 {
     "name": "jbizzay/skrape",
-    "description": "PHP web scraper, link previewer, spider",
+    "description": "PHP web scraper and link previewer",
     "authors": [
         {
             "name": "Jason Kuchynka",

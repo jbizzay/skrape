@@ -27,7 +27,7 @@ class ConfigTest extends TestCase
 
     public function testGetDefaultByDot()
     {
-        $this->assertTrue(Config::getDefault('cache.fetch'));
+        $this->assertTrue(Config::getDefault('request.verify'));
     }
 
     public function testGetGlobal()

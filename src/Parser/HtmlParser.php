@@ -116,13 +116,15 @@ class HtmlParser extends Parser
         $images = [];
         $metas = $this->getMetas();
         foreach ($metas as $meta) {
-            if (isset($meta['property']) && isset($meta['content']) && $meta['property'] == 'og:image') {
+            if (isset($meta['property']) && ! empty($meta['content']) && $meta['property'] == 'og:image') {
                 $images[(new Uri($meta['content'], $this->uri))->toString()] = true;
             }
         }
         $dom_images = $this->crawler->filter('img')->extract(['src', 'class']);
         foreach ($dom_images as $dom_image) {
-            $images[(new Uri($dom_image[0], $this->uri))->toString()] = true;
+            if ( ! empty($dom_image[0])) {
+                $images[(new Uri($dom_image[0], $this->uri))->toString()] = true;
+            }
         }
         return array_keys($images);
     }

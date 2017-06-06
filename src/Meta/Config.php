@@ -21,28 +21,26 @@ class Config extends Meta
      * @var array
      */
     CONST REQUEST_OPTIONS = [
-        'request' => [
-            'allow_redirects' => [
-                'max'             => 5,
-                'strict'          => false,
-                'referer'         => true,
-                'protocols'       => ['http', 'https'],
-                'track_redirects' => false
-            ],
-            'connect_timeout' => 20,
-            'decode_content' => true,
-            'expect' => 1048576,
-            'http_errors' => true,
-            'stream' => false,
-            'verify' => true,
-            'timeout' => 20,
-            'version' => '1.1',
-            'headers' => [
-                'User-Agent' => 'Popwords 0.1'
-            ],
-            'curl' => [
-                //CURLOPT_SSLVERSION => CURL_SSLVERSION_SSLv3
-            ]
+        'allow_redirects' => [
+            'max'             => 5,
+            'strict'          => false,
+            'referer'         => true,
+            'protocols'       => ['http', 'https'],
+            'track_redirects' => false
+        ],
+        'connect_timeout' => 20,
+        'decode_content' => true,
+        'expect' => 1048576,
+        'http_errors' => true,
+        'stream' => false,
+        'verify' => true,
+        'timeout' => 20,
+        'version' => '1.1',
+        'headers' => [
+            'User-Agent' => 'Skrape 0.1'
+        ],
+        'curl' => [
+            //CURLOPT_SSLVERSION => CURL_SSLVERSION_SSLv3
         ]
     ];
 
