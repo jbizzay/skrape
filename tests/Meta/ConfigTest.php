@@ -1,7 +1,8 @@
 <?php
-namespace Skrape\Tests;
+namespace Skrape\Tests\Meta;
 
-use Skrape\Config;
+use Skrape\Tests\TestCase;
+use Skrape\Meta\Config;
 
 class ConfigTest extends TestCase
 {
@@ -11,12 +12,6 @@ class ConfigTest extends TestCase
         parent::setUp();
         Config::clearGlobal();
         Config::setGlobal('foo', ['bar' => true, 'qux' => true]);
-    }
-
-    public function testSetThroughConstructorSetsCustom()
-    {
-        $config = new Config('test', 'example');
-        $this->assertEquals('example', $config->get('test'));
     }
 
     public function testGetDefault()
@@ -96,24 +91,6 @@ class ConfigTest extends TestCase
         $this->assertArrayHasKey('cache', $config->get());
     }
 
-    public function testGet()
-    {
-        $config = new Config;
-        $this->assertTrue($config->get()['foo']['bar']);
-    }
-
-    public function testGetByKey()
-    {
-        $config = new Config;
-        $this->assertTrue($config->get('foo')['bar']);
-    }
-
-    public function testGetByKeyDot()
-    {
-        $config = new Config;
-        $this->assertTrue($config->get('foo.bar'));
-    }
-
     public function testGetOverrides()
     {
         $config = new Config;
@@ -124,43 +101,6 @@ class ConfigTest extends TestCase
         // Instance should override global
         $config->set('cache', ['fetch' => 'instance']);
         $this->assertEquals('instance', $config->get()['cache']['fetch']);
-    }
-
-    public function testGetNotSetReturnsNull()
-    {
-        $config = new Config;
-        $this->assertNull($config->get('notexists'));
-        $this->assertNull($config->get('not.exist.s'));
-    }
-
-    public function testSet()
-    {
-        $config = new Config;
-        $config->set(['test' => ['param' => true]]);
-        $this->assertTrue($config->get()['test']['param']);
-    }
-
-    public function testSetByKey()
-    {
-        $config = new Config;
-        $config->set('test', ['param' => true]);
-        $this->assertTrue($config->get()['test']['param']);
-    }
-
-    public function testSetByKeyDot()
-    {
-        $config = new Config;
-        $config->set('test.param', true);
-        $this->assertTrue($config->get()['test']['param']);
-    }
-
-    public function testSetSingleValueRetainsOtherValuesInNamespace()
-    {
-        $config = new Config;
-        $config->set(['test' => ['param1' => true, 'param2' => true]]);
-        $config->set('test', ['param2' => false]);
-        // Should retain other values in same namespace
-        $this->assertTrue($config->get()['test']['param1']);
     }
 
 }
