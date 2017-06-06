@@ -136,7 +136,7 @@ class HtmlParser extends Parser
         $keywords = [];
         $metas = $this->getMetas();
         foreach ($metas as $meta) {
-            if ($meta['property'] == 'keywords') {
+            if (isset($meta['property']) && $meta['property'] == 'keywords') {
                 $parts = explode(',', $meta['content']);
                 foreach ($parts as $part) {
                     $keywords[] = trim($part);

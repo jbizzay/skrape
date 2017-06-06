@@ -1,6 +1,14 @@
 <?php
 namespace Skrape\Tests;
 
+use Skrape\Skrape;
+use GuzzleHttp\Client;
+use GuzzleHttp\Handler\MockHandler;
+use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Psr7\Response;
+use GuzzleHttp\Psr7\Request;
+use GuzzleHttp\Psr7\Stream;
+
 abstract class TestCase extends \PHPUnit\Framework\TestCase
 {
     protected $testHeaders = [
@@ -17,4 +25,18 @@ abstract class TestCase extends \PHPUnit\Framework\TestCase
         'vary' => ['Accept-Encoding'],
         'transfer-encoding' => ['chunked']
     ];
+
+    protected function getMockSkrape($uri, $filename)
+    {
+        $body = file_get_contents(__DIR__ . '/Fixtures/' . $filename);
+        $mock = new MockHandler([
+            new Response(200, ['content-type' => ['text/html; charset=ISO-8859-1']], $body)
+        ]);
+        $handler = HandlerStack::create($mock);
+        $client = new Client(['handler' => $handler]);
+        $skrape = new Skrape($uri);
+        $skrape->getConfig()->set('cache.fetch', false);
+        $skrape->getFetcher()->setClient($client);
+        return $skrape;
+    }
 }

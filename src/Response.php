@@ -3,6 +3,8 @@
 namespace Skrape;
 
 use Skrape\Meta\Meta;
+use webignition\InternetMediaType\Parser\TypeParser;
+use webignition\InternetMediaType\Parser\SubtypeParser;
 
 class Response {
 
@@ -39,7 +41,7 @@ class Response {
         $this->statusCode = (int) $status;
         $this->headers = $headers;
         $this->normalizeHeaders();
-        $this->body = $body;
+        $this->body = (string) $body;
         $this->protocol = $version;
         $this->reasonPhrase = $reason;
     }
@@ -122,6 +124,37 @@ class Response {
             $this->meta = new Meta;
         }
         return $this->meta;
+    }
+
+    /**
+     * @return string
+     */
+    public function getContentType()
+    {
+        return $this->getHeader('CONTENT-TYPE');
+    }
+
+    /**
+     * Get the media type of the response
+     * @return string
+     */
+    public function getMediaType()
+    {
+        $contentType = $this->getContentType();
+        if ( ! $contentType) {
+            throw new \Exception('Couldnt get content type');
+        }
+        $typeParser = new TypeParser;
+        $type = $typeParser->parse($contentType);
+        switch ($type) {
+            case 'text':
+            case 'xml':
+            case 'application':
+                $subParser = new SubtypeParser;
+                return $subParser->parse($contentType);
+            break;
+        }
+        return $type;
     }
 
 }

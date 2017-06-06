@@ -6,10 +6,13 @@ use Skrape\Parser\Html;
 use Skrape\Parser\Feed;
 use Skrape\Parser\Image;
 use Skrape\Parser\Json;
+use Skrape\Cache;
+use Skrape\Meta\Config;
+use Skrape\Meta\Meta;
 use Skrape\Response;
+use Skrape\Fetcher\FetcherInterface;
+use Skrape\Fetcher\HttpFetcher;
 use Skrape\Exception\UriInvalidException;
-use GuzzleHttp\Client;
-use Symfony\Component\Filesystem\Filesystem;
 
 use VDB\Uri\Uri;
 use VDB\Uri\UriInterface;
@@ -17,57 +20,28 @@ use VDB\Uri\UriInterface;
 class Skrape {
 
     /**
-     * Map media type to parser
-     * @var array
+     * @var Cache
      */
-    protected $class_map = [
-        'html' => 'Html',
-        'xml' => 'Feed',
-        'rss+xml' => 'Feed',
-        'atom+xml' => 'Feed',
-        'image' => 'Image',
-        'json' => 'Json'
-    ];
+    protected $cache;
 
     /**
      * @var Config
      */
     protected $config;
 
+    /**
+     * @var FetcherInterface
+     */
+    protected $fetcher;
 
     /**
-     * Filesystem used for file based caching
-     * @var Filesystem
+     * @var Parser
      */
-    protected static $filesystem;
-
-    /**
-     * High level info about the Skrape object
-     * @var array
-     */
-    protected $info = [
-        'from_cache' => false,
-        'stored_in_cache' => false
-    ];
-
-    /**
-     * @var
-     */
-    protected $mapped_type;
-
-    /**
-     * @var
-     */
-    protected $media_type;
-
-    /**
-     * Skrape object Guzzle options
-     * @var array
-     */
-    protected $options = [];
-
     protected $parser;
 
+    /**
+     * @var Response
+     */
     protected $response;
 
     /**
@@ -76,6 +50,7 @@ class Skrape {
     protected $uri;
 
     /**
+     * Create a new Skrape
      * @param UriInterface|string $uri
      * @param string|boolean $autoScheme
      */
@@ -99,9 +74,6 @@ class Skrape {
         } catch (\Exception $e) {
             throw new Exception\UriInvalidException('Invalid URI: ' . (string) $uri . ' Message: ' . $e->getMessage());
         }
-
-
-        self::$filesystem = new Filesystem;
     }
 
     /**
@@ -116,7 +88,18 @@ class Skrape {
     }
 
     /**
-     * @return UriInterace $uri
+     * Set this Skrape's config
+     * @param Config $config
+     * @return $this
+     */
+    public function setConfig(Config $config)
+    {
+        $this->config = $config;
+        return $this;
+    }
+
+    /**
+     * @return UriInterace
      */
     public function getUri()
     {
@@ -124,156 +107,127 @@ class Skrape {
     }
 
     /**
-     * Load resource based on type
-     * @return mixed
+     * @return Cache
      */
-    public function fetch()
+    public function getCache()
     {
-        $this->response = null;
-
-        // Check cached
-        if ($this->config['get_from_cache']) {
-            $this->response = $this->getCached();
-            if ($this->response) {
-                $this->info['from_cache'] = true;
-            }
+        if ( ! $this->cache) {
+            $this->cache = new Cache($this->getConfig(), $this->getUri());
         }
-
-        if ( ! $this->response && ! $this->config['get_only_from_cache']) {
-            $client = new Client(self::$default_options);
-            try {
-                $response = $client->get((string) $this->uri, $this->options);
-            } catch (\Exception $e) {
-                throw new \Exception(' URL: ' . (string) $this->uri);
-            }
-            $this->response = new Response;
-            $this->response->setResponse($response);
-            if ($this->config['store_in_cache']) {
-                $directory = $this->getCacheDirectory();
-                $file_path = $directory . '/' . $this->getCacheFilename();
-                self::$filesystem->dumpFile($file_path, serialize($this->response));
-                $this->info['stored_in_cache'] = true;
-            }
-        }
-
-        if ($this->response) {
-            $this->media_type = $this->response->getMediaType();
-            $this->mapped_type = $this->class_map[$this->media_type];
-            $class = 'Skrape\\Parser\\' . $this->mapped_type;
-            $this->parser = new $class($this);
-            return true;
-        }
-
-        return false;
+        return $this->cache;
     }
 
-    public function getBody()
+    /**
+     * @param Cache
+     * @return $this
+     */
+    public function setCache(Cache $cache)
     {
-        return $this->response->getBody();
+        $this->cache = $cache;
+        return $this;
     }
 
-    public function getCached()
-    {
-        $file_path = $this->getCacheDirectory() . '/' . $this->getCacheFilename();
-        if (self::$filesystem->exists($file_path)) {
-            return unserialize(file_get_contents($file_path));
-        }
-    }
-
-    public function getCacheDirectory()
-    {
-        $directory = rtrim($this->config['cache_directory'], '/') . '/' . $this->uri->getHost();
-        if ( ! self::$filesystem->exists($directory)) {
-            self::$filesystem->mkdir($directory, 0775);
-        }
-        return $directory;
-    }
-
-    public function getCacheFilename()
-    {
-        return str_replace('/', '-', (string) $this->uri);
-    }
-
-
-    public static function getDefaultConfig()
-    {
-        return self::$default_config;
-    }
-
-    public static function getDefaultOptions()
-    {
-        return self::$default_options;
-    }
-
-    public function getInfo()
-    {
-        $info = [];
-        $info['url'] = (string) $this->uri;
-        if ($this->response) {
-            $info['status_code'] = $this->response->getStatusCode();
-            $info['reason_phrase'] = $this->response->getReasonPhrase();
-            $info['content_type'] = $this->response->getContentType();
-            $info['media_type'] = $this->media_type;
-        }
-        $info['cache_filepath'] = $this->getCacheDirectory() . '/' . $this->getCacheFilename();
-        $info = array_merge($info, $this->info);
-        return $info;
-    }
-
-    public function getLinks()
-    {
-        if ($this->media_type == 'html') {
-            return $this->parser->getLinks();
-        }
-        return [];
-    }
-
+    /**
+     * @return Response
+     */
     public function getResponse()
     {
         return $this->response;
     }
 
-    public function getParse($parse_methods)
+    /**
+     * @return FetcherInterface
+     */
+    public function getFetcher()
     {
-        $info = [];
-        foreach ($parse_methods as $method) {
-            $method_name = 'get' . ucwords($method);
-            if (method_exists($this->parser, $method_name)) {
-                $info[$method] = $this->parser->$method_name();
-            } else {
-                $info[$method] = null;
-            }
+        if ( ! $this->fetcher) {
+            $this->fetcher = new HttpFetcher($this->getConfig(), $this->getUri());
         }
-        return $info;
+        return $this->fetcher;
     }
 
-    public static function setDefaultConfig($config)
+    /**
+     * @var FetcherInterface
+     */
+    public function setFetcher(FetcherInterface $fetcher)
     {
-        self::$default_config = array_merge(self::$default_config, $config);
-    }
-
-    public static function setDefaultOptions($options)
-    {
-        self::$default_options = array_merge(self::$default_options, $options);
-    }
-
-    public function setOptions()
-    {
-        return $this->options;
-    }
-
-    public function setUri(Uri $uri)
-    {
-        $this->uri = $uri;
+        $this->fetcher = $fetcher;
         return $this;
     }
 
     /**
-     * @param array $class_map
+     * Get response of resource
+     * @return Response
      */
-    public function setClassMap($class_map)
+    public function fetch()
     {
-        $this->class_map = $class_map;
+        $this->response = null;
+        $source = null;
+        if ($this->getConfig()->get('cache.fetch')) {
+            $this->response = $this->getCache()->fetch();
+            $source = 'cache';
+        }
+        if ( ! $this->response) {
+            $fetcher = $this->getFetcher();
+            $this->response = $fetcher->fetch();
+            $source = 'http';
+            $this->response->getMeta()->set([
+                'http' => [
+                    'date_fetched' => time()
+                ]
+            ]);
+        }
+        // Store response in cache if from http and config allows
+        if ($this->getConfig()->get('cache.store') && $source != 'cache') {
+            $this->response->getMeta()->set('cache.date_stored', time());
+            $this->getCache()->store($this->response);
+        }
+        $this->response->getMeta()->set('source', $source);
+        return $this->response;
+    }
+
+    /**
+     * Get a Parser based on response media type
+     * @return Parser
+     */
+    public function getParser()
+    {
+        if ($this->response && ! $this->parser) {
+            $type = $this->response->getMediaType();
+            $class = 'Skrape\\Parser\\' . ucwords($type) . 'Parser';
+            if (class_exists($class)) {
+                $this->parser = new $class($this->response, $this->uri, $this->getConfig());
+            }
+        }
+        return $this->parser;
+    }
+
+    /**
+     * Parse data from this resource, e.g.
+     * $skrape->parse(['title', 'description', 'image']);
+     * $skrape->parse(); // To get everything possible
+     * @param array|null $methods
+     * @return array
+     */
+    public function parse($methods = null)
+    {
+        $parser = $this->getParser();
+        if ( ! $parser) {
+            throw new \Exception('Couldnt get parser');
+        }
+        $parsed = [];
+        if ( ! $methods) {
+            $methods = $parser->getAllMethods();
+        }
+        foreach ($methods as $method) {
+            $methodName = 'get' . ucwords($method);
+            if (method_exists($parser, $methodName)) {
+                $parsed[$method] = $parser->$methodName();
+            } else {
+                $parsed[$method] = null;
+            }
+        }
+        return $parsed;
     }
 
 }
