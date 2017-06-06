@@ -18,6 +18,12 @@ class ResponseTest extends TestCase
         );
     }
 
+    public function testSetup()
+    {
+        $response = new Response;
+        $this->assertEquals(200, $response->getStatusCode());
+    }
+
     public function testGetStatusCode()
     {
         $this->assertSame(200, $this->response->getStatusCode());
@@ -55,9 +61,10 @@ class ResponseTest extends TestCase
         $this->assertSame('OK', $this->response->getReason());
     }
 
-    public function testGetMeta()
+    public function testMeta()
     {
-        $this->assertInstanceOf('Skrape\\Config', $this->response->getMeta());
+        $this->response->getMeta()->set('test.ing', 123);
+        $this->assertSame(123, $this->response->getMeta()->get('test.ing'));
     }
 
 }

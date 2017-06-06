@@ -3,7 +3,7 @@ namespace Skrape\Tests;
 
 use Skrape\Skrape;
 use Skrape\Cache;
-use Skrape\Config;
+use Skrape\Meta\Config;
 use Skrape\Response;
 use VDB\Uri\Uri;
 
@@ -18,7 +18,7 @@ class CacheTest extends TestCase
     public function testSetup()
     {
         $cache = new Cache(new Config, new Uri('http://example.org'));
-        $this->assertInstanceOf('Skrape\\Config', $cache->getConfig());
+        $this->assertInstanceOf('Skrape\\Meta\\Config', $cache->getConfig());
         $this->assertInstanceOf('VDB\\Uri\\UriInterface', $cache->getUri());
     }
 

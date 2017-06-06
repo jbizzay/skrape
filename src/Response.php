@@ -2,7 +2,7 @@
 
 namespace Skrape;
 
-use Skrape\Config;
+use Skrape\Meta\Meta;
 
 class Response {
 
@@ -34,7 +34,7 @@ class Response {
      * @param string $version Protocal version
      * @param string $reason Reason phrase
      */
-    public function __construct($status, $headers, $body, $version, $reason)
+    public function __construct($status = 200, $headers = [], $body = '', $version = '1.1', $reason = 'OK')
     {
         $this->statusCode = (int) $status;
         $this->headers = $headers;
@@ -113,13 +113,13 @@ class Response {
     }
 
     /**
-     * Get Meta config, will be cached with this response
-     * @return Config
+     * Get Meta object, will be cached with this response
+     * @return Meta
      */
     public function getMeta()
     {
         if ( ! $this->meta) {
-            $this->meta = new Config;
+            $this->meta = new Meta;
         }
         return $this->meta;
     }

@@ -1,7 +1,7 @@
 <?php
 namespace Skrape\Fetcher;
 
-use Skrape\Config;
+use Skrape\Meta\Config;
 use VDB\Uri\UriInterface;
 
 abstract class Fetcher

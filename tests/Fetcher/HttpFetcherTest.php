@@ -2,12 +2,14 @@
 namespace Skrape\Tests\Fetcher;
 
 use Skrape\Tests\TestCase;
-use Skrape\Config;
+use Skrape\Meta\Config;
 use Skrape\Fetcher\HttpFetcher;
 use GuzzleHttp\Client;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
+use GuzzleHttp\Psr7\Request;
+use GuzzleHttp\Exception\RequestException;
 use VDB\Uri\Uri;
 
 class HttpFetcherTest extends TestCase
@@ -23,7 +25,7 @@ class HttpFetcherTest extends TestCase
 
     public function testSetup()
     {
-        $this->assertInstanceOf('Skrape\\Config', $this->fetcher->getConfig());
+        $this->assertInstanceOf('Skrape\\Meta\\Config', $this->fetcher->getConfig());
         $this->assertInstanceOf('VDB\\Uri\\UriInterface', $this->fetcher->getUri());
     }
 
@@ -51,5 +53,17 @@ class HttpFetcherTest extends TestCase
         $this->assertEquals(200, $response->getStatusCode());
         $this->assertEquals('OK', $response->getReason());
         $this->assertInstanceOf('Skrape\\Response', $response);
+    }
+
+    /** @expectedException GuzzleHttp\Exception\RequestException */
+    public function testFetchError()
+    {
+        $mock = new MockHandler([
+            new RequestException('Error Communicating with Server', new Request('GET', 'test'))
+        ]);
+        $handler = HandlerStack::create($mock);
+        $client = new Client(['handler' => $handler]);
+        $this->fetcher->setClient($client);
+        $this->fetcher->fetch();
     }
 }

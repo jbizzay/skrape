@@ -1,6 +1,7 @@
 <?php
 namespace Skrape;
 
+use Skrape\Meta\Config;
 use Symfony\Component\Filesystem\Filesystem;
 use VDB\Uri\UriInterface;
 
