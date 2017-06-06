@@ -11,6 +11,22 @@ class HtmlParser extends Parser
     protected $crawler;
 
     /**
+     * Methods that should be called when "*" is called on this parser
+     * @var array
+     */
+    protected $allMethods = [
+        'description',
+        'favicon',
+        'feeds',
+        'image',
+        'images',
+        'keywords',
+        'links',
+        'metas',
+        'title'
+    ];
+
+    /**
      * @return Crawler
      */
     public function getCrawler()

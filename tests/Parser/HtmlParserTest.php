@@ -16,6 +16,12 @@ class HtmlParserTest extends TestCase
         return new HtmlParser($response, new Uri('http://example.org'));
     }
 
+    public function testGetAllMethods()
+    {
+        $parser = $this->getParser('');
+        $this->assertContains('title', $parser->getAllMethods());
+    }
+
     public function testGetCrawler()
     {
         $parser = $this->getParser('');
