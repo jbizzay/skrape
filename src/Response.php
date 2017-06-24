@@ -46,6 +46,29 @@ class Response {
         $this->reasonPhrase = $reason;
     }
 
+    public function getDebug($bodyLength = 100)
+    {
+        $debug = [];
+        foreach ([
+            'StatusCode',
+            'Headers',
+            'Version',
+            'Reason',
+            'ContentType',
+            'MediaType'
+        ] as $method) {
+            $call = 'get' . $method;
+            $debug[$method] = $this->$call();
+        }
+        $debug['Meta'] = $this->getMeta()->get();
+        if ($bodyLength) {
+            $debug['Body_' . $bodyLength] = substr($this->getBody(), 0, 100);
+        } else {
+            $debug['Body'] = $this->getBody();
+        }
+        return $debug;
+    }
+
     /**
      * @return int $statusCode
      */
@@ -112,6 +135,7 @@ class Response {
             $key = strtoupper($key);
             $this->headersNormalized[$key] = $header[0];
         }
+        return $this->headersNormalized;
     }
 
     /**
