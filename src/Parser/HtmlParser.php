@@ -60,7 +60,7 @@ class HtmlParser extends Parser
         foreach ($links as $link) {
             if (isset($link[0])) {
                 $rel = strtolower($link[0]);
-                if ($rel == 'shortcut icon' || $rel == 'icon') {
+                if ($rel == 'shortcut icon' || $rel == 'icon' || $rel == 'apple-touch-icon') {
                     $favicon_url = $link[1];
                 }
             }
